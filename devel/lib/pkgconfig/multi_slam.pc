@@ -1,0 +1,8 @@
+prefix=/home/seo/catkin_ws/devel
+
+Name: multi_slam
+Description: Description of multi_slam
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/seo/catkin_ws/devel/lib 
+Requires: 
