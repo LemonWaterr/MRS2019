@@ -25,11 +25,13 @@ class Intercept(object):
     
 def run():
   rospy.init_node('decentraliser')
-  intercept1 = Intercept('tb3_0/map_temp', 'tb3_0/map')
+  intercept1 = Intercept('tb3_0/map', 'tb3_0/tb3_0/map')
+  intercept2 = Intercept('tb3_1/map', 'tb3_0/tb3_1/map')
+  intercept3 = Intercept('tb3_2/map', 'tb3_0/tb3_2/map')
   
   sleep = rospy.Rate(5000)
   while not rospy.is_shutdown():
-    print("running...")
+    #print("running...")
     sleep.sleep()
 
 if __name__ == '__main__':

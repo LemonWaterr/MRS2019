@@ -6,7 +6,6 @@
 
   <!-- Gmapping -->
   <node pkg="gmapping" type="slam_gmapping" name="turtlebot3_slam_gmapping" output="screen" ns="$(arg ns0)">
-    <remap from="map" to="map_temp"/>
     <param name="base_frame" value="$(arg ns0)/base_footprint"/>
     <param name="odom_frame" value="$(arg ns0)/odom"/>
     <param name="map_frame"  value="$(arg ns0)/map"/>
