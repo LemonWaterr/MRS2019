@@ -25,9 +25,9 @@ class Intercept(object):
     
 def run():
   rospy.init_node('decentraliser')
-  intercept1 = Intercept('tb3_0/map', 'tb3_0/tb3_0/map')
-  intercept2 = Intercept('tb3_1/map', 'tb3_0/tb3_1/map')
-  intercept3 = Intercept('tb3_2/map', 'tb3_0/tb3_2/map')
+  intercept1 = Intercept('tb3_0/map', 'tb3_0/map4tb3_0')
+  intercept2 = Intercept('tb3_1/map', 'tb3_1/map4tb3_0')
+  intercept3 = Intercept('tb3_2/map', 'tb3_2/map4tb3_0')
   
   sleep = rospy.Rate(5000)
   while not rospy.is_shutdown():
