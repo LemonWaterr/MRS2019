@@ -53,15 +53,16 @@ class InitMergeMapInput(object):
     self.done = False
     
   def callback(self, msg):
-    if self.merger == self.target:
-      self.mergeOut.publish(msg)
-    else:
-      if not self.done:
+    if not self.done:
+      if self.merger == self.target:
+        self.mergeOut.publish(msg)
+      else:
         EmptyDataMsg = msg
         EmptyDataMsg.data = [-1] * len(EmptyDataMsg.data)
         self.mergeOut.publish(EmptyDataMsg)
         print('init {}/map4{}'.format(self.target, self.merger))
-        self.done = True
+      self.done = True
+        
     
 class Decentralise(object):  
   def __init__(self, target, merger, comm_range):
