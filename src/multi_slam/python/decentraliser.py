@@ -24,14 +24,17 @@ class getDistance(object):
     self.dist = 99999.0
 
   def callback(self, msg):
-    idx = [i for i, n in enumerate(msg.name) if n == self.source or n == self.target]
-    if len(idx) != 2 :
-      raise ValueError('Specified name "{} or {}" does not exist.'.format(self.source, self.target))
-    x0 = msg.pose[idx[0]].position.x
-    y0 = msg.pose[idx[0]].position.y
-    x1 = msg.pose[idx[1]].position.x
-    y1 = msg.pose[idx[1]].position.y
-    self.dist = math.sqrt((x0-x1)**2 + (y0-y1)**2)
+    if self.source == self.target:
+      self.dist = 0.0
+    else:
+      idx = [i for i, n in enumerate(msg.name) if n == self.source or n == self.target]
+      if len(idx) != 2:
+        raise ValueError('Specified name "{} or {}" does not exist.'.format(self.source, self.target))
+      x0 = msg.pose[idx[0]].position.x
+      y0 = msg.pose[idx[0]].position.y
+      x1 = msg.pose[idx[1]].position.x
+      y1 = msg.pose[idx[1]].position.y
+      self.dist = math.sqrt((x0-x1)**2 + (y0-y1)**2)
 
   @property
   def ready(self):
@@ -46,6 +49,7 @@ class Intercept(object):
     self.target = target
     self.merger = merger
     self.comm_range = comm_range
+    self.distance_getter = getDistance(self.merger, self.target)
     rospy.Subscriber('{}/map'.format(target), OccupancyGrid, self.callback_map)
     self.pub = rospy.Publisher('{}/map4{}'.format(target, merger), OccupancyGrid, queue_size=10)
     
@@ -53,8 +57,7 @@ class Intercept(object):
     if self.target == self.merger:
       self.pub.publish(msg)
     else:
-      distance_get = getDistance(self.merger, self.target)
-      distance = distance_get.distance
+      distance = self.distance_getter.distance
 
       if distance < self.comm_range:
         print("{} gets {}'s map since distance {} < {}".format(self.merger, self.target, distance, self.comm_range))
