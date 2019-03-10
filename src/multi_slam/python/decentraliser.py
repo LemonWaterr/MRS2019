@@ -15,7 +15,7 @@ from nav_msgs.msg import OccupancyGrid
 from gazebo_msgs.msg import ModelStates
 #from std_msgs.msg import String
 
-class getDistance(object):
+class GetDistance(object):
   def __init__(self, source, target):
     rospy.Subscriber('/gazebo/model_states', ModelStates, self.callback)
     self.pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
@@ -44,36 +44,87 @@ class getDistance(object):
   def distance(self):
     return self.dist
 
-class Intercept(object):  
+class InitMergeMapInput(object):
+  def __init__(self, target, merger):
+    self.target = target
+    self.merger = merger
+    self.mergeOut = rospy.Publisher('{}/map4{}'.format(target, merger), OccupancyGrid, queue_size=10)
+    self.localMap = rospy.Subscriber('{}/map'.format(merger), OccupancyGrid, self.callback)
+    self.done = False
+    
+  def callback(self, msg):
+    if self.merger == self.target:
+      self.mergeOut.publish(msg)
+    else:
+      if not self.done:
+        EmptyDataMsg = msg
+        EmptyDataMsg.data = [-1] * len(EmptyDataMsg.data)
+        self.mergeOut.publish(EmptyDataMsg)
+        print('init {}/map4{}'.format(self.target, self.merger))
+        self.done = True
+    
+class Decentralise(object):  
   def __init__(self, target, merger, comm_range):
     self.target = target
     self.merger = merger
     self.comm_range = comm_range
-    self.distance_getter = getDistance(self.merger, self.target)
-    rospy.Subscriber('{}/map'.format(target), OccupancyGrid, self.callback_map)
+    
+    self.first = True
+    
+    self.distance_getter = GetDistance(self.merger, self.target)
+    self.sub = None
     self.pub = rospy.Publisher('{}/map4{}'.format(target, merger), OccupancyGrid, queue_size=10)
     
-  def callback_map(self, msg):
-    if self.target == self.merger:
+    if target == merger:
+      self.sub = rospy.Subscriber('{}/map'.format(merger), OccupancyGrid, self.callback_myself)
+    else:
+      self.sub = rospy.Subscriber('map_merged_{}'.format(target), OccupancyGrid, self.callback_target)
+    
+    
+    
+  def callback_myself(self, msg):
+    self.pub.publish(msg)
+
+  def callback_target(self, msg):
+    distance = self.distance_getter.distance
+
+    if distance < self.comm_range:
+      print("{} gets {}'s map since distance {} < {}".format(self.merger, self.target, distance, self.comm_range))
       self.pub.publish(msg)
     else:
-      distance = self.distance_getter.distance
-
-      if distance < self.comm_range:
-        print("{} gets {}'s map since distance {} < {}".format(self.merger, self.target, distance, self.comm_range))
-        self.pub.publish(msg)
-      else:
-        print("{}/{} {} > {}".format(self.merger, self.target, distance, self.comm_range))
-
+      print("{}/{} {} > {}".format(self.merger, self.target, distance, self.comm_range))
     
     
 def run():
   rospy.init_node('decentraliser')
-  merger = 'tb3_0'
+  robot1 = 'tb3_0'
+  robot2 = 'tb3_1'
+  robot3 = 'tb3_2'
   comm_range = 5.0
-  intercept1 = Intercept('tb3_0', merger, comm_range)
-  intercept2 = Intercept('tb3_1', merger, comm_range)
-  intercept3 = Intercept('tb3_2', merger, comm_range)
+  
+  #Init puts empty map with correct dimensions to each proxy (for decentralisation) topic. MUST BE RUN BEFORE Decentralise() 
+  init1_1 = InitMergeMapInput(robot1, robot1)
+  init1_2 = InitMergeMapInput(robot2, robot1)
+  init1_3 = InitMergeMapInput(robot3, robot1)
+  init2_1 = InitMergeMapInput(robot1, robot2)
+  init2_2 = InitMergeMapInput(robot2, robot2)
+  init2_3 = InitMergeMapInput(robot3, robot2)
+  init3_1 = InitMergeMapInput(robot1, robot3)
+  init3_2 = InitMergeMapInput(robot2, robot3)
+  init3_3 = InitMergeMapInput(robot3, robot3)
+  
+  
+  decentre1_1 = Decentralise(robot1, robot1, comm_range)
+  decentre1_2 = Decentralise(robot2, robot1, comm_range)
+  decentre1_3 = Decentralise(robot3, robot1, comm_range)
+  
+  decentre2_1 = Decentralise(robot1, robot2, comm_range)
+  decentre2_2 = Decentralise(robot2, robot2, comm_range)
+  decentre2_3 = Decentralise(robot3, robot2, comm_range)
+  
+  decentre3_1 = Decentralise(robot1, robot3, comm_range)
+  decentre3_2 = Decentralise(robot2, robot3, comm_range)
+  decentre3_3 = Decentralise(robot3, robot3, comm_range)
   
   sleep = rospy.Rate(5000)
   while not rospy.is_shutdown():

@@ -42,10 +42,32 @@
 
   
   <node pkg="multirobot_map_merge" type="map_merge" respawn="false" name="map_merge_$(arg first_tb3)" output="screen">
-    <param name="robot_map_topic" value="map4tb3_0"/>
+    <param name="robot_map_topic" value="map4$(arg first_tb3)"/>
     <param name="robot_namespace" value="tb3"/>
-    <param name="merged_map_topic" value="map_merged_tb3_0"/>
-    <param name="world_frame" value="map_merged_tb3_0"/>
+    <param name="merged_map_topic" value="map_merged_$(arg first_tb3)"/>
+    <param name="world_frame" value="map_merged_$(arg first_tb3)"/>
+    <param name="known_init_poses" value="true"/>
+    <param name="merging_rate" value="0.5"/>
+    <param name="discovery_rate" value="0.05"/>
+    <param name="estimation_rate" value="0.1"/>
+    <param name="estimation_confidence" value="1.0"/>
+  </node>
+  <node pkg="multirobot_map_merge" type="map_merge" respawn="false" name="map_merge_$(arg second_tb3)" output="screen">
+    <param name="robot_map_topic" value="map4$(arg second_tb3)"/>
+    <param name="robot_namespace" value="tb3"/>
+    <param name="merged_map_topic" value="map_merged_$(arg second_tb3)"/>
+    <param name="world_frame" value="map_merged_$(arg second_tb3)"/>
+    <param name="known_init_poses" value="true"/>
+    <param name="merging_rate" value="0.5"/>
+    <param name="discovery_rate" value="0.05"/>
+    <param name="estimation_rate" value="0.1"/>
+    <param name="estimation_confidence" value="1.0"/>
+  </node>
+  <node pkg="multirobot_map_merge" type="map_merge" respawn="false" name="map_merge_$(arg third_tb3)" output="screen">
+    <param name="robot_map_topic" value="map4$(arg third_tb3)"/>
+    <param name="robot_namespace" value="tb3"/>
+    <param name="merged_map_topic" value="map_merged_$(arg third_tb3)"/>
+    <param name="world_frame" value="map_merged_$(arg third_tb3)"/>
     <param name="known_init_poses" value="true"/>
     <param name="merging_rate" value="0.5"/>
     <param name="discovery_rate" value="0.05"/>
@@ -57,6 +79,10 @@
   <node pkg="tf" type="static_transform_publisher" name="world_to_$(arg second_tb3)_tf_broadcaster" args="0 0 0 0 0 0 /map /$(arg second_tb3)/map 100"/>
   <node pkg="tf" type="static_transform_publisher" name="world_to_$(arg third_tb3)_tf_broadcaster" args="0 0 0 0 0 0 /map /$(arg third_tb3)/map 100"/>
   <node pkg="tf" type="static_transform_publisher" name="world_to_map_merged_$(arg first_tb3)_tf_broadcaster" args="0 0 0 0 0 0 /map /map_merged_$(arg first_tb3) 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_map_merged_$(arg second_tb3)_tf_broadcaster" args="0 0 0 0 0 0 /map /map_merged_$(arg second_tb3) 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_map_merged_$(arg third_tb3)_tf_broadcaster" args="0 0 0 0 0 0 /map /map_merged_$(arg third_tb3) 100"/>
+
+
 </launch>
 
 <!-- http://wiki.ros.org/multirobot_map_merge -->

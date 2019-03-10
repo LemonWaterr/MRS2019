@@ -403,7 +403,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /tb3_0/map
+      Topic: /tb3_0/map4tb3_0
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -413,7 +413,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /tb3_1/map
+      Topic: /tb3_1/map4tb3_0
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -423,7 +423,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /tb3_2/map
+      Topic: /tb3_2/map4tb3_0
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -434,6 +434,26 @@ Visualization Manager:
       Enabled: true
       Name: Map
       Topic: /map_merged_tb3_0
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /map_merged_tb3_1
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /map_merged_tb3_2
       Unreliable: false
       Use Timestamp: false
       Value: true
