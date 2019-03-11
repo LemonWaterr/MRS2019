@@ -403,7 +403,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /tb3_0/map4tb3_0
+      Topic: /tb3_0/map4tb3_1
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -413,7 +413,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /tb3_1/map4tb3_0
+      Topic: /tb3_1/map4tb3_1
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -423,7 +423,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /tb3_2/map4tb3_0
+      Topic: /tb3_2/map4tb3_1
       Unreliable: false
       Use Timestamp: false
       Value: true
