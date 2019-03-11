@@ -1,0 +1,52 @@
+<launch>
+  <include file="$(find multi_slam)/launch/multi_turtlebot3.launch">
+    <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
+    <arg name="first_tb3"  default="tb3_0"/>
+    <arg name="second_tb3" default="tb3_1"/>
+    <arg name="third_tb3"  default="tb3_2"/>
+  
+    <arg name="first_tb3_x_pos" default="-7.0"/>
+    <arg name="first_tb3_y_pos" default="-1.0"/>
+    <arg name="first_tb3_z_pos" default=" 0.0"/>
+    <arg name="first_tb3_yaw"   default=" 1.57"/>
+  
+    <arg name="second_tb3_x_pos" default=" 7.0"/>
+    <arg name="second_tb3_y_pos" default="-1.0"/>
+    <arg name="second_tb3_z_pos" default=" 0.0"/>
+    <arg name="second_tb3_yaw"   default=" 1.57"/>
+  
+    <arg name="third_tb3_x_pos" default=" 0.5"/>
+    <arg name="third_tb3_y_pos" default=" 3.0"/>
+    <arg name="third_tb3_z_pos" default=" 0.0"/>
+    <arg name="third_tb3_yaw"   default=" 0.0"/>
+  </include>
+  <include file="$(find multi_slam)/launch/multi_turtlebot3_slam.launch">
+    <arg name="ns0" default="tb3_0"/>
+    <arg name="ns1" default="tb3_1"/>
+    <arg name="ns2" default="tb3_2"/>
+  </include>
+  <include file="$(find turtlebot3_gazebo)/launch/multi_map_merge.launch">
+    <arg name="first_tb3"  default="tb3_0"/>
+    <arg name="second_tb3" default="tb3_1"/>
+    <arg name="third_tb3"  default="tb3_2"/>
+  
+    <arg name="first_tb3_x_pos" default="-7.0"/>
+    <arg name="first_tb3_y_pos" default="-1.0"/>
+    <arg name="first_tb3_z_pos" default=" 0.0"/>
+    <arg name="first_tb3_yaw"   default=" 0.0"/>
+  
+    <arg name="second_tb3_x_pos" default=" 7.0"/>
+    <arg name="second_tb3_y_pos" default="-1.0"/>
+    <arg name="second_tb3_z_pos" default=" 0.0"/>
+    <arg name="second_tb3_yaw"   default=" 0.0"/>
+  
+    <arg name="third_tb3_x_pos" default=" 0.5"/>
+    <arg name="third_tb3_y_pos" default=" 3.0"/>
+    <arg name="third_tb3_z_pos" default=" 0.0"/>
+    <arg name="third_tb3_yaw"   default=" 0.0"/>
+  </include>
+
+</launch>
+
+
+

@@ -66,6 +66,12 @@ class InitMergeMapInput(object):
     
 class Decentralise(object):  
   def __init__(self, target, merger, comm_range):
+    allRobots = ['tb3_0', 'tb3_1', 'tb3_2']
+    self.otherRobots = [i for i in allRobots if i != target and i != merger]
+    self.otherPubs = [None] * len(self.otherRobots)
+    for i in range(0, len(self.otherRobots)):
+      self.otherPubs[i] = rospy.Publisher('{}/map4{}'.format(self.otherRobots[i], merger), OccupancyGrid, queue_size=10)
+    
     self.target = target
     self.merger = merger
     self.comm_range = comm_range
@@ -73,27 +79,47 @@ class Decentralise(object):
     self.first = True
     
     self.distance_getter = GetDistance(self.merger, self.target)
+    self.sub_first = None
     self.sub = None
     self.pub = rospy.Publisher('{}/map4{}'.format(target, merger), OccupancyGrid, queue_size=10)
     
     if target == merger:
       self.sub = rospy.Subscriber('{}/map'.format(merger), OccupancyGrid, self.callback_myself)
     else:
+      self.sub_first = rospy.Subscriber('{}/map'.format(target), OccupancyGrid, self.callback_target_first)
       self.sub = rospy.Subscriber('map_merged_{}'.format(target), OccupancyGrid, self.callback_target)
     
-    
-    
   def callback_myself(self, msg):
-    self.pub.publish(msg)
+    distance = self.distance_getter.distance
+    if distance < self.comm_range:
+      self.pub.publish(msg)
+      
+  def callback_target_first(self, msg):
+    if self.first:
+      distance = self.distance_getter.distance
+      if distance < self.comm_range:
+        print("{} gets {}'s first map since distance {} < {}".format(self.merger, self.target, distance, self.comm_range))
+        self.pub.publish(msg)
+        for opub in self.otherPubs:
+          EmptyDataMsg = msg
+          EmptyDataMsg.data = [-1] * len(EmptyDataMsg.data)
+          opub.publish(EmptyDataMsg)
+        self.first = False
+      else:
+        print("{}/{} {} > {}".format(self.merger, self.target, distance, self.comm_range))
 
   def callback_target(self, msg):
-    distance = self.distance_getter.distance
-
-    if distance < self.comm_range:
-      print("{} gets {}'s map since distance {} < {}".format(self.merger, self.target, distance, self.comm_range))
-      self.pub.publish(msg)
-    else:
-      print("{}/{} {} > {}".format(self.merger, self.target, distance, self.comm_range))
+    if not self.first:
+      distance = self.distance_getter.distance
+      if distance < self.comm_range:
+        print("{} gets {}'s map since distance {} < {}".format(self.merger, self.target, distance, self.comm_range))
+        self.pub.publish(msg)
+        for opub in self.otherPubs:
+          EmptyDataMsg = msg
+          EmptyDataMsg.data = [-1] * len(EmptyDataMsg.data)
+          opub.publish(EmptyDataMsg)
+      else:
+        print("{}/{} {} > {}".format(self.merger, self.target, distance, self.comm_range))
     
     
 def run():
