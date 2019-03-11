@@ -44,13 +44,18 @@ X = 0
 Y = 1
 YAW = 2
 
-ROBOT_NS = rospy.get_param("/rrt_navigation/robot_ns")
+parser = argparse.ArgumentParser(description='rrt_nav args')
+parser.add_argument('--name', action='store', default='turtlebot3_burger', help='Method.')
+args, unknown = parser.parse_known_args()
+
+ROBOT_NS = args.name #rospy.get_param("/rrt_navigation/robot_ns")
+
+MAP_TOPIC_NAME = rospy.get_param("/rrt_navigation_{}/map_topic_name".format(ROBOT_NS))
+GOAL_TOPIC_NAME = rospy.get_param("/rrt_navigation_{}/goal_topic_name".format(ROBOT_NS))
+
 if ROBOT_NS != "":
   ROBOT_NS = '/' + ROBOT_NS
-
-MAP_TOPIC_NAME = rospy.get_param("/rrt_navigation/map_topic_name")
 MAP_TOPIC = ROBOT_NS + '/' + MAP_TOPIC_NAME
-GOAL_TOPIC_NAME = rospy.get_param("/rrt_navigation/goal_topic_name")
 GOAL_TOPIC = ROBOT_NS + '/' + GOAL_TOPIC_NAME
 
 
@@ -144,11 +149,11 @@ class SLAM(object):
   def update(self):
     # Get pose w.r.t. map.
     a = 'occupancy_grid'
-    b = 'base_link'
+    b = ROBOT_NS[1:] + '/base_link' if ROBOT_NS != "" else 'base_link'
     if self._tf.frameExists(a) and self._tf.frameExists(b):
       try:
         t = rospy.Time(0)
-        position, orientation = self._tf.lookupTransform('/' + a, '/' + b, t)
+        position, orientation = self._tf.lookupTransform('/' + a, '/' +  b, t)
         self._pose[X] = position[X]
         self._pose[Y] = position[Y]
         _, _, self._pose[YAW] = euler_from_quaternion(orientation)
@@ -204,7 +209,7 @@ class Explortaion(object):
     self.scan_sub = rospy.Subscriber(ROBOT_NS + '/scan', LaserScan, self.get_range_callback)
 
     # show good pos
-    self._good_pos_pub = rospy.Publisher(ROBOT_NS + '~good_pos', PointStamped, queue_size=1)
+    self._good_pos_pub = rospy.Publisher('~good_pos', PointStamped, queue_size=1)
     self.rrt_final_node = None
 
 
@@ -437,7 +442,7 @@ def run(args):
     # Make sure all measurements are ready.
     # Get map and current position through SLAM:
     # > roslaunch exercises slam.launch
-    if not goal.ready or not slam.ready:
+    if not slam.ready or not goal.ready:
       rate_limiter.sleep()
       continue
 
