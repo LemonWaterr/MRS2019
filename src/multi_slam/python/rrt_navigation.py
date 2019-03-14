@@ -203,26 +203,38 @@ class Explortaion(object):
 
   def __init__(self, slam_obj):
     self._slam_obj = slam_obj
+    self._merged_occupancy_grid = None
     self._next_dest = None
     # success meaning don't need to explore anymore
     self._success = False
     self.scan_sub = rospy.Subscriber(ROBOT_NS + '/scan', LaserScan, self.get_range_callback)
+    self.merged_map_subscriber = rospy.Subscriber('/map', OccupancyGrid, self.get_merged_map_callback)
 
     # show good pos
     self._good_pos_pub = rospy.Publisher('~good_pos', PointStamped, queue_size=1)
     self.rrt_final_node = None
-
 
   def get_range_callback(self, msg):
     self.laser_min_range = msg.range_min
     self.laser_max_range = msg.range_max
     self.min_of_reading = float(np.min(msg.ranges))
     self.max_of_reading = float(np.max(msg.ranges[msg.ranges != np.inf]))
+    
+  def get_merged_map_callback(self, msg):
+    values = np.array(msg.data, dtype=np.int8).reshape((msg.info.width, msg.info.height))
+    processed = np.empty_like(values)
+    processed[:] = rrt.FREE
+    processed[values < 0] = rrt.UNKNOWN
+    processed[values > 50] = rrt.OCCUPIED
+    processed = processed.T
+    origin = [msg.info.origin.position.x, msg.info.origin.position.y, 0.]
+    resolution = msg.info.resolution
+    self._merged_occupancy_grid = rrt.OccupancyGrid(processed, origin, resolution)
 
 
   def get_next_dest_for_local(self):
     # get the max size of the map and use it as max_dist
-    grid_shape = self._slam_obj.occupancy_grid.values.shape
+    grid_shape = self._merged_occupancy_grid.values.shape
     map_max_size = max(grid_shape[0], grid_shape[1])
     # design the probability decay function, wrt the laser ranges and max map size
     min_dist = (self.min_of_reading + self.max_of_reading) / 2
@@ -248,10 +260,10 @@ class Explortaion(object):
       sampled_dir = np.array([np.cos(sampled_dir), np.sin(sampled_dir)])
       sampled_dist = self.probability_decay_funciton(None)
       pos = sampled_dir * sampled_dist + self._slam_obj.pose[:2]
-      if self._slam_obj.occupancy_grid.is_outside(pos) or not self._slam_obj.occupancy_grid.is_unknown(pos):
-        if self._slam_obj.occupancy_grid.is_outside(pos):
+      if self._merged_occupancy_grid.is_outside(pos) or not self._merged_occupancy_grid.is_unknown(pos):
+        if self._merged_occupancy_grid.is_outside(pos):
           outside_time += 1
-        if not self._slam_obj.occupancy_grid.is_unknown(pos):
+        if not self._merged_occupancy_grid.is_unknown(pos):
           unknown_time += 1
         continue
       else:
@@ -263,7 +275,7 @@ class Explortaion(object):
         point_stamped.point.x = pos[0]
         point_stamped.point.y = pos[1]
         self._good_pos_pub.publish(point_stamped)
-        s, f = Explortaion.check_connectivity(self._slam_obj.pose, pos, self._slam_obj.occupancy_grid)
+        s, f = Explortaion.check_connectivity(self._slam_obj.pose, pos, self._merged_occupancy_grid)
         if f is None:
           print("no path to ", pos)
           continue
@@ -327,7 +339,7 @@ class Explortaion(object):
 
   @property
   def ready(self):
-    if self._next_dest is None and self._slam_obj.occupancy_grid is not None:
+    if self._next_dest is None and self._merged_occupancy_grid is not None:
       # do the getting next destination for the first time
       self.get_next_dest_for_local()
     # if self.current_goal_reached:
